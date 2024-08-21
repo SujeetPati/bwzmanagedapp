@@ -1,0 +1,75 @@
+[
+    {
+      "_version": "3.0",
+      "identification": {
+        "id": "manageCatalogId",
+        "title": "{{title}}",
+        "entityType": "catalog"
+      },
+      "payload": {
+        "viz": [
+          {
+            "appId": "comshell.pocapp",
+            "vizId": "pocappbwz-manage"
+          }
+        ]
+      },
+      "texts": [
+        {
+          "locale": "",
+          "textDictionary": {
+            "title": "BWZ POC Catalog"
+          }
+        }
+      ]
+    },
+    {
+      "_version": "3.0",
+      "identification": {
+        "id": "manageGroupId",
+        "title": "{{title}}",
+        "entityType": "group"
+      },
+      "payload": {
+        "viz": [
+          {
+            "appId": "comshell.pocapp",
+            "vizId": "pocappbwz-manage"
+          }
+        ]
+      },
+      "texts": [
+        {
+          "locale": "",
+          "textDictionary": {
+            "title": "BWZ POC Group"
+          }
+        }
+      ]
+    },
+    {
+      "_version": "3.0",
+      "identification": {
+        "id": "manageRoleId",
+        "entityType": "role",
+        "title": "BWZ POC Role"
+      },
+      "payload": {
+        "apps": [
+          {
+            "id": "comshell.pocapp"
+          }
+        ],
+        "catalogs": [
+          {
+            "id": "manageCatalogId"
+          }
+        ],
+        "groups": [
+          {
+            "id": "manageGroupId"
+          }
+        ]
+      }
+    }
+  ]

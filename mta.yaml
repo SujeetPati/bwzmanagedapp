@@ -1,0 +1,149 @@
+_schema-version: "3.2"
+ID: bwzmanagedapp
+version: 0.0.1
+build-parameters:
+  before-all:
+    - builder: custom
+    # CDM copy to resources folder #################################
+      commands:
+        - mkdir -p resources
+        - cp workzone/cdm.json resources/cdm.json
+    ################################################################
+modules:
+- name: bwzmanagedapp-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: bwzmanagedapp-destination-service
+    parameters:
+      content-target: true
+  - name: bwzmanagedapp_html_repo_runtime
+    parameters:
+      service-key:
+        name: bwzmanagedapp-html5-app-runtime-key
+  - name: uaa_bwzmanagedapp
+    parameters:
+      service-key:
+        name: uaa_bwzmanagedapp-key
+  parameters:
+    content:
+      subaccount:
+        destinations:
+        - Name: bwzmanagedapp_dt
+          ServiceInstanceName: bwzmanagedapp-html5-app-runtime-service
+          ServiceKeyName: bwzmanagedapp-html5-app-runtime-key
+          URL: https://html5-apps-repo-rt.${default-domain}/applications/cdm/bwzmarouter
+          existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+# - name: bwzmanagedapp-destination-content1
+#   type: com.sap.application.content
+#   requires:
+#   - name: bwzmanagedapp-destination-service
+#     parameters:
+#       content-target: true
+#   - name: bwzmanagedapp_html_repo_host
+#     parameters:
+#       service-key:
+#         name: bwzmanagedapp_html_repo_host-key
+#   - name: uaa_bwzmanagedapp
+#     parameters:
+#       service-key:
+#         name: uaa_bwzmanagedapp-key
+#   parameters:
+#     content:
+#       instance:
+#         destinations:
+#         - Name: bwzmarouter_bwzmanagedapp_html_repo_host
+#           ServiceInstanceName: bwzmanagedapp-html5-app-host-service
+#           ServiceKeyName: bwzmanagedapp_html_repo_host-key
+#         - Authentication: OAuth2UserTokenExchange
+#           Name: bwzmarouter_uaa_bwzmanagedapp
+#           ServiceInstanceName: bwzmanagedapp-xsuaa-service
+#           ServiceKeyName: uaa_bwzmanagedapp-key
+#           sap.cloud.service: bwzmarouter
+#         existing_destinations_policy: ignore
+#   build-parameters:
+#     no-source: true
+# HTML5 app deployer module - store xsuaa, backend destinations
+- name: bwzmanagedapp-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: uaa_bwzmanagedapp
+  - name: bwzmanagedapp_html_repo_host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - comshellpocapp.zip
+      name: comshellpocapp
+      target-path: resources/
+    parameters:
+    config:
+      destinations:
+      - name: ui5
+        url: https://ui5.sap.com
+#######################################################
+# HTML5 Module ########################################################
+- name: comshellpocapp
+  type: html5
+  path: pocapp
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+#############################################
+resources:
+# HTML5 app-runtime resource for CDM DT destination ######################
+- name: bwzmanagedapp_html_repo_runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: bwzmanagedapp-html5-app-runtime-service
+    service-plan: app-runtime
+###########################################################################
+# HTML5 app-host resource - upload html5 apps #############################
+- name: bwzmanagedapp_html_repo_host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: bwzmanagedapp-html5-app-host-service
+    service-plan: app-host
+############################################################
+# Destination resource for CDM RT destination #############################
+- name: bwzmanagedapp-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        subaccount:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: bwzmanagedapp_rt
+            ProxyType: Internet
+            Type: HTTP
+            CEP.HTML5contentprovider: true
+            URL: https://inoshellcf003.dt.launchpad.cfapps.eu10.hana.ondemand.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: bwzmanagedapp-destination-service
+    service-plan: lite
+###################################################
+# XSUAA resource - upload html5 apps ##################################
+- name: uaa_bwzmanagedapp
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: bwzmanagedapp-xsuaa-service
+    service-plan: application
+#############################################################
+parameters:
+  deploy_mode: html5-repo
